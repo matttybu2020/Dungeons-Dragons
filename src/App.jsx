@@ -7,6 +7,10 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import './App.css';
+import './components/Components.css';
+import DragonBoss from './components/DragonBoss';
+import ProceduralMap from './components/ProceduralMap';
+import SpellBook from './components/SpellBook';
 
 // --- CONFIGURACIÓN Y MOCKS ---
 const CLASSES = [
@@ -77,35 +81,14 @@ const CharacterCreation = ({ onComplete }) => {
 };
 
 const TacticalMap = ({ playerPos, enemies, onMove, dragonPos }) => {
-  const grid = Array.from({ length: GRID_SIZE * GRID_SIZE });
+  const [currentTheme] = useState({ id: 'crypt', name: 'Cripta Olvidada', color: '#1e293b' });
 
   return (
-    <div className="map-container glass-card">
-      <div className="map-header">
-        <MapIcon size={20} /> <span className="fantasy-title">Mapa de la Mazmorra</span>
-      </div>
-      <div className="game-grid">
-        {grid.map((_, i) => {
-          const x = i % GRID_SIZE;
-          const y = Math.floor(i / GRID_SIZE);
-          const isPlayer = playerPos.x === x && playerPos.y === y;
-          const isEnemy = enemies.some(e => e.x === x && e.y === y);
-          const isDragon = dragonPos.x === x && dragonPos.y === y;
-
-          return (
-            <div
-              key={i}
-              className={`grid-cell ${isPlayer ? 'cell-player' : ''} ${isEnemy ? 'cell-enemy' : ''} ${isDragon ? 'cell-dragon' : ''}`}
-              onClick={() => onMove(x, y)}
-            >
-              {isPlayer && '🧙‍♂️'}
-              {isEnemy && '👹'}
-              {isDragon && '🐉'}
-            </div>
-          );
-        })}
-      </div>
-    </div>
+    <ProceduralMap
+      playerPos={playerPos}
+      onCellClick={onMove}
+      theme={currentTheme}
+    />
   );
 };
 
@@ -275,20 +258,15 @@ const App = () => {
                 </div>
               </section>
 
-              <aside className="right-panel glass-card">
-                <h3 className="fantasy-title"><Sparkles size={18} /> Libro de Hechizos</h3>
-                <div className="spell-list">
-                  {SPELLS.map(spell => (
-                    <div key={spell.id} className="spell-card">
-                      <span className="spell-icon">{spell.icon}</span>
-                      <div className="spell-info">
-                        <h4>{spell.name}</h4>
-                        <small>{spell.cost} Mana</small>
-                      </div>
-                      <button className="spell-cast-btn" disabled={character.mana < spell.cost}>Lanzar</button>
-                    </div>
-                  ))}
-                </div>
+              <aside className="right-panel">
+                <SpellBook
+                  character={character}
+                  onCastSpell={(spell) => {
+                    addLog(`Lanzas ${spell.name}!`, 'success');
+                    setCharacter(prev => ({ ...prev, mana: prev.mana - spell.manaCost }));
+                  }}
+                  inCombat={false}
+                />
               </aside>
             </main>
           </motion.div>
@@ -300,20 +278,33 @@ const App = () => {
             animate={{ scale: 1, opacity: 1 }}
             className="combat-screen"
           >
-            <div className="combat-stage">
-              <div className="combatant player">
-                <div className="sprite">🧙‍♂️</div>
-                <div className="name-plate">{character.name}</div>
-              </div>
-              <div className="vs fantasy-title">VS</div>
-              <div className="combatant enemy">
-                <div className="sprite">{combatEnemy.isDragon ? '🐉' : '👹'}</div>
-                <div className="name-plate">{combatEnemy.name}</div>
-                <div className="enemy-hp-bar">
-                  <div className="fill" style={{ width: `${(combatEnemy.hp / combatEnemy.maxHp) * 100}%` }}></div>
+            {combatEnemy.isDragon ? (
+              <DragonBoss
+                dragon={combatEnemy}
+                onAttack={handleAttack}
+                onDefeat={handleVictory}
+                onDamage={(dmg) => {
+                  const newHp = Math.max(0, character.hp - dmg);
+                  setCharacter(prev => ({ ...prev, hp: newHp }));
+                  addLog(`¡El dragón te quema con ${dmg} de daño!`, 'danger');
+                }}
+              />
+            ) : (
+              <div className="combat-stage">
+                <div className="combatant player">
+                  <div className="sprite">🧙‍♂️</div>
+                  <div className="name-plate">{character.name}</div>
+                </div>
+                <div className="vs fantasy-title">VS</div>
+                <div className="combatant enemy">
+                  <div className="sprite">👹</div>
+                  <div className="name-plate">{combatEnemy.name}</div>
+                  <div className="enemy-hp-bar">
+                    <div className="fill" style={{ width: `${(combatEnemy.hp / combatEnemy.maxHp) * 100}%` }}></div>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             <div className="combat-actions glass-card">
               <button onClick={handleAttack} className="premium-button attack-btn"><Swords /> ATACAR</button>

@@ -1,0 +1,401 @@
+/* Dragon Boss Styles */
+.dragon-boss-arena {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
+    padding: 40px;
+    background: radial-gradient(circle at center, rgba(251, 191, 36, 0.1), transparent);
+}
+
+.phase-indicator {
+    position: absolute;
+    top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.phase-warning {
+    color: #fbbf24;
+    font-size: 0.9rem;
+    animation: pulse 1s infinite;
+}
+
+.phase-critical {
+    color: #ef4444;
+    font-size: 1rem;
+    font-weight: 900;
+    animation: shake 0.5s infinite;
+}
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-5px);
+    }
+
+    75% {
+        transform: translateX(5px);
+    }
+}
+
+.dragon-sprite {
+    font-size: 12rem;
+    filter: drop-shadow(0 0 40px rgba(251, 191, 36, 0.8));
+    position: relative;
+}
+
+.dragon-sprite.phase-2 {
+    filter: drop-shadow(0 0 50px rgba(239, 68, 68, 0.6));
+}
+
+.dragon-sprite.phase-3 {
+    filter: drop-shadow(0 0 60px rgba(239, 68, 68, 1));
+    animation: rage 0.3s infinite;
+}
+
+@keyframes rage {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.fire-breath {
+    position: absolute;
+    font-size: 4rem;
+    left: 0;
+    top: 50%;
+    z-index: 10;
+}
+
+.dragon-hp-container {
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+}
+
+.dragon-name {
+    font-size: 2rem;
+    margin-bottom: 15px;
+    color: #fbbf24;
+    text-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+}
+
+.dragon-hp-bar-outer {
+    width: 100%;
+    height: 30px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 15px;
+    overflow: hidden;
+    border: 2px solid #fbbf24;
+}
+
+.dragon-hp-bar-inner {
+    height: 100%;
+    background: linear-gradient(90deg, #fbbf24, #f59e0b);
+    transition: width 0.5s ease;
+}
+
+.dragon-abilities {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.ability-icon {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 15px;
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+/* Procedural Map Styles */
+.procedural-map {
+    padding: 20px;
+}
+
+.map-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.regenerate-btn {
+    background: var(--primary);
+    border: none;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+}
+
+.regenerate-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px var(--primary-glow);
+}
+
+.dungeon-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 3px;
+    background: var(--theme-color);
+    padding: 10px;
+    border-radius: 12px;
+}
+
+.dungeon-cell {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.dungeon-cell.wall {
+    background: #1e293b;
+    cursor: not-allowed;
+}
+
+.dungeon-cell.enemy {
+    background: rgba(239, 68, 68, 0.1);
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+}
+
+.dungeon-cell.treasure {
+    background: rgba(251, 191, 36, 0.1);
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
+    animation: sparkle 2s infinite;
+}
+
+.dungeon-cell.dragon {
+    background: radial-gradient(circle, rgba(251, 191, 36, 0.2), transparent);
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+}
+
+.dungeon-cell.player {
+    background: rgba(168, 85, 247, 0.3);
+    box-shadow: 0 0 15px var(--primary-glow);
+    z-index: 2;
+}
+
+.dungeon-cell.fog {
+    background: rgba(0, 0, 0, 0.8);
+    cursor: not-allowed;
+}
+
+@keyframes sparkle {
+
+    0%,
+    100% {
+        filter: brightness(1);
+    }
+
+    50% {
+        filter: brightness(1.5);
+    }
+}
+
+/* Spellbook Styles */
+.spellbook-container {
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.spellbook-header {
+    margin-bottom: 20px;
+}
+
+.spell-filters {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.filter-btn {
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    color: var(--text-dim);
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.85rem;
+}
+
+.filter-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.spells-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.spell-card-advanced {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.spell-card-advanced::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--spell-color);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.spell-card-advanced:hover::before,
+.spell-card-advanced.selected::before {
+    opacity: 1;
+}
+
+.spell-card-advanced.selected {
+    border-color: var(--spell-color);
+    box-shadow: 0 0 20px var(--spell-color);
+}
+
+.spell-card-advanced.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.spell-icon-container {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.spell-details h3 {
+    margin: 0 0 8px 0;
+    font-size: 1rem;
+    font-family: 'Cinzel Decorative', serif;
+}
+
+.spell-desc {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+}
+
+.spell-stats {
+    display: flex;
+    gap: 10px;
+    font-size: 0.85rem;
+}
+
+.stat-damage {
+    color: #ef4444;
+}
+
+.stat-heal {
+    color: #22c55e;
+}
+
+.stat-mana {
+    color: #3b82f6;
+}
+
+.ultimate-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: linear-gradient(135deg, #f97316, #dc2626);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.65rem;
+    font-weight: 900;
+    letter-spacing: 1px;
+    box-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
+}
+
+.spell-action-panel {
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+}
+
+.selected-spell-preview {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.spell-animation {
+    font-size: 2.5rem;
+}
+
+.cast-spell-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+
+.cast-spell-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Additional Premium Effects */
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.glow-text {
+    text-shadow: 0 0 20px currentColor;
+}
