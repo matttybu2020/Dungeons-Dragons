@@ -1,79 +1,147 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap');
-
 :root {
-  --primary: #8b5cf6;
-  --primary-glow: rgba(139, 92, 246, 0.5);
+  --primary: #a855f7;
+  --primary-glow: rgba(168, 85, 247, 0.4);
+  --secondary: #ec4899;
   --accent: #fbbf24;
   --background: #020617;
-  --surface: rgba(30, 41, 59, 0.7);
+  --surface: rgba(15, 23, 42, 0.8);
   --glass: rgba(255, 255, 255, 0.03);
-  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.08);
   --text-main: #f8fafc;
   --text-dim: #94a3b8;
   --danger: #ef4444;
   --success: #22c55e;
-  
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: dark;
-  color: var(--text-main);
-  background-color: var(--background);
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --dragon-gold: radial-gradient(circle, #fcd34d 0%, #b45309 100%);
 }
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Outfit:wght@300;400;600&display=swap');
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-  background: radial-gradient(circle at top right, #1e1b4b, #020617);
+  padding: 0;
+  font-family: 'Outfit', sans-serif;
+  background-color: var(--background);
+  color: var(--text-main);
   overflow-x: hidden;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(168, 85, 247, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 100% 100%, rgba(236, 72, 153, 0.1) 0%, transparent 50%),
+    var(--background);
+  min-height: 100vh;
 }
 
-#root {
-  width: 100%;
+.fantasy-title {
+  font-family: 'Cinzel Decorative', serif;
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
 
-* {
-  box-sizing: border-box;
-}
-
-h1, h2, h3, .fantasy-font {
-  font-family: 'Cinzel', serif;
-  letter-spacing: 0.05em;
-}
-
-.glass-panel {
+.glass-card {
   background: var(--glass);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--glass-border);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
 }
 
-.glow-text {
-  text-shadow: 0 0 10px var(--primary-glow);
+.premium-button {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  border: none;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 15px var(--primary-glow);
 }
 
+.premium-button:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 25px var(--primary-glow);
+  filter: brightness(1.1);
+}
+
+/* Map Grid Styles */
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 10px;
+  border-radius: 12px;
+  border: 2px solid var(--glass-border);
+}
+
+.grid-cell {
+  aspect-ratio: 1;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.grid-cell:hover {
+  background: rgba(168, 85, 247, 0.1);
+  transform: scale(1.1);
+  z-index: 2;
+}
+
+.cell-wall {
+  background: #1e293b;
+  color: #475569;
+}
+
+.cell-path {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.cell-player {
+  background: rgba(168, 85, 247, 0.2);
+  box-shadow: 0 0 15px var(--primary);
+  z-index: 3;
+}
+
+.cell-enemy {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.cell-dragon {
+  filter: drop-shadow(0 0 10px gold);
+  animation: float 3s infinite ease-in-out;
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--background);
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--glass-border);
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {

@@ -1,45 +1,170 @@
-import { useState, useRef, useEffect } from 'react'
-import './App.css'
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Shield, Swords, Heart, Zap, Search, User,
+  Map as MapIcon, Scroll, Flame, Sparkles,
+  Skull, Trophy, Coins, Settings, ArrowRight
+} from 'lucide-react';
+import confetti from 'canvas-confetti';
+import './App.css';
 
-function App() {
-  const [gameState, setGameState] = useState('exploration'); // exploration, combat, victory, gameover
-  const [character, setCharacter] = useState({
-    name: "Valerius the Brave",
-    class: "Paladin",
-    level: 5,
-    hp: 42,
-    maxHp: 55,
-    ac: 18,
-    stats: {
-      str: 16, dex: 10, con: 14, int: 8, wis: 12, cha: 15
-    },
-    gold: 120,
-    inventory: ["Espada de Acero", "Escudo", "Poción de Curación", "Linterna"]
-  });
+// --- CONFIGURACIÓN Y MOCKS ---
+const CLASSES = [
+  { id: 'warrior', name: 'Guerrero', icon: <Swords />, color: '#ef4444', desc: 'Maestro de las armas y la defensa.' },
+  { id: 'mage', name: 'Mago', icon: <Flame />, color: '#3b82f6', desc: 'Manipulador de las artes arcanas.' },
+  { id: 'paladin', name: 'Paladín', icon: <Shield />, color: '#fbbf24', desc: 'Defensor sagrado bendecido por la luz.' },
+  { id: 'rogue', name: 'Pícaro', icon: <Zap />, color: '#10b981', desc: 'Experto en sigilo y ataques críticos.' }
+];
 
-  const [enemy, setEnemy] = useState(null);
+const SPELLS = [
+  { id: 'fireball', name: 'Bola de Fuego', cost: 20, damage: 15, icon: '🔥', type: 'fire' },
+  { id: 'heal', name: 'Luz Divina', cost: 15, heal: 12, icon: '✨', type: 'holy' },
+  { id: 'arcane_bolt', name: 'Dardo Arcano', cost: 10, damage: 8, icon: '🔮', type: 'magic' }
+];
 
-  const [log, setLog] = useState([
-    { type: 'system', text: 'Bienvenido a la Mazmorra de las Sombras.' },
-    { type: 'narrative', text: 'Te encuentras frente a una pesada puerta de piedra. El aire es frío y huele a humedad.' }
+const GRID_SIZE = 10;
+
+// --- COMPONENTES ---
+
+const CharacterCreation = ({ onComplete }) => {
+  const [name, setName] = useState('');
+  const [selectedClass, setSelectedClass] = useState(CLASSES[0]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="creation-screen glass-card"
+    >
+      <h1 className="fantasy-title glow-text">Crea tu Leyenda</h1>
+      <div className="creation-content">
+        <div className="input-group">
+          <label>Nombre del Héroe</label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Ej. Valerius..."
+            className="fantasy-input"
+          />
+        </div>
+
+        <div className="class-grid">
+          {CLASSES.map(cls => (
+            <div
+              key={cls.id}
+              className={`class-card ${selectedClass.id === cls.id ? 'active' : ''}`}
+              onClick={() => setSelectedClass(cls)}
+              style={{ '--cls-color': cls.color }}
+            >
+              <div className="class-icon">{cls.icon}</div>
+              <h3>{cls.name}</h3>
+              <p>{cls.desc}</p>
+            </div>
+          ))}
+        </div>
+
+        <button
+          className="premium-button start-btn"
+          disabled={!name}
+          onClick={() => onComplete({ name, class: selectedClass })}
+        >
+          Iniciar Aventura <ArrowRight size={18} />
+        </button>
+      </div>
+    </motion.div>
+  );
+};
+
+const TacticalMap = ({ playerPos, enemies, onMove, dragonPos }) => {
+  const grid = Array.from({ length: GRID_SIZE * GRID_SIZE });
+
+  return (
+    <div className="map-container glass-card">
+      <div className="map-header">
+        <MapIcon size={20} /> <span className="fantasy-title">Mapa de la Mazmorra</span>
+      </div>
+      <div className="game-grid">
+        {grid.map((_, i) => {
+          const x = i % GRID_SIZE;
+          const y = Math.floor(i / GRID_SIZE);
+          const isPlayer = playerPos.x === x && playerPos.y === y;
+          const isEnemy = enemies.some(e => e.x === x && e.y === y);
+          const isDragon = dragonPos.x === x && dragonPos.y === y;
+
+          return (
+            <div
+              key={i}
+              className={`grid-cell ${isPlayer ? 'cell-player' : ''} ${isEnemy ? 'cell-enemy' : ''} ${isDragon ? 'cell-dragon' : ''}`}
+              onClick={() => onMove(x, y)}
+            >
+              {isPlayer && '🧙‍♂️'}
+              {isEnemy && '👹'}
+              {isDragon && '🐉'}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+const App = () => {
+  const [user, setUser] = useState(null);
+  const [gameState, setGameState] = useState('creation'); // creation, world, combat
+  const [character, setCharacter] = useState(null);
+  const [playerPos, setPlayerPos] = useState({ x: 0, y: 0 });
+  const [enemies, setEnemies] = useState([
+    { x: 3, y: 4, name: 'Orco', hp: 30 },
+    { x: 7, y: 2, name: 'Esqueleto', hp: 20 }
   ]);
-
+  const [dragonPos, setDragonPos] = useState({ x: 8, y: 8 });
+  const [log, setLog] = useState([]);
+  const [combatEnemy, setCombatEnemy] = useState(null);
   const [lastRoll, setLastRoll] = useState(null);
-  const logEndRef = useRef(null);
-
-  const scrollToBottom = () => {
-    logEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }
-
-  useEffect(() => {
-    scrollToBottom();
-    // Re-run lucide icons if they exist
-    if (window.lucide) window.lucide.createIcons();
-  }, [log, gameState]);
 
   const addLog = (text, type = 'info') => {
-    setLog(prev => [...prev, { type, text }]);
-  }
+    setLog(prev => [{ id: Date.now(), text, type }, ...prev].slice(0, 50));
+  };
+
+  const handleCreation = (data) => {
+    setCharacter({
+      ...data,
+      level: 1,
+      hp: 100,
+      maxHp: 100,
+      mana: 50,
+      maxMana: 50,
+      gold: 500,
+      xp: 0,
+      inventory: ['Poción de Vida', 'Mapa Arrugado']
+    });
+    setGameState('world');
+    addLog(`¡Bienvenido, ${data.name} el ${data.class.name}! Tu aventura comienza ahora.`);
+  };
+
+  const handleMove = (x, y) => {
+    const dist = Math.abs(x - playerPos.x) + Math.abs(y - playerPos.y);
+    if (dist > 1) return; // Solo mover 1 espacio
+
+    setPlayerPos({ x, y });
+
+    // Chequear encuentro con enemigo
+    const enemyFound = enemies.find(e => e.x === x && e.y === y);
+    if (enemyFound) {
+      setCombatEnemy({ ...enemyFound, maxHp: enemyFound.hp });
+      setGameState('combat');
+      addLog(`¡Has sido emboscado por un ${enemyFound.name}!`, 'danger');
+      return;
+    }
+
+    // Chequear encuentro con Dragón
+    if (x === dragonPos.x && y === dragonPos.y) {
+      setCombatEnemy({ name: 'DRAGÓN DORADO', hp: 200, maxHp: 200, isDragon: true });
+      setGameState('combat');
+      addLog(`¡TE ENCUENTRAS ANTE EL DRAGÓN DORADO! Prepárate para la batalla final.`, 'warning');
+    }
+  };
 
   const rollDice = (sides) => {
     const roll = Math.floor(Math.random() * sides) + 1;
@@ -47,247 +172,166 @@ function App() {
     return roll;
   };
 
-  const startCombat = () => {
-    setEnemy({
-      name: "Gran Orco de las Sombras",
-      hp: 40,
-      maxHp: 40,
-      ac: 14,
-      attackName: "Hachazo",
-      damage: 8
-    });
-    setGameState('combat');
-    addLog("¡Un Gran Orco surge de las sombras!", "danger");
-  }
-
   const handleAttack = () => {
-    if (!enemy) return;
+    const roll = rollDice(20);
+    addLog(`Tiras d20: ${roll}`, 'system');
 
-    const attackRoll = rollDice(20);
-    addLog(`Lanzas un ataque: (d20) ${attackRoll}`, 'info');
-
-    if (attackRoll >= enemy.ac) {
-      const damage = rollDice(8) + 3; // d8 + str mod
-      const newEnemyHp = Math.max(0, enemy.hp - damage);
-      setEnemy(prev => ({ ...prev, hp: newEnemyHp }));
-      addLog(`¡Golpeas al ${enemy.name} por ${damage} de daño!`, 'success');
+    if (roll >= 10) {
+      const dmg = rollDice(12) + 5;
+      const newEnemyHp = Math.max(0, combatEnemy.hp - dmg);
+      setCombatEnemy(prev => ({ ...prev, hp: newEnemyHp }));
+      addLog(`¡Golpeas al ${combatEnemy.name} por ${dmg} de daño!`, 'success');
 
       if (newEnemyHp <= 0) {
-        addLog(`¡Has derrotado al ${enemy.name}!`, 'success');
-        setGameState('victory');
-        setCharacter(prev => ({ ...prev, gold: prev.gold + 50 }));
+        handleVictory();
       } else {
         enemyTurn();
       }
     } else {
-      addLog(`¡Fallas el ataque!`, 'system');
+      addLog(`¡Fallas el ataque!`, 'danger');
       enemyTurn();
     }
-  }
+  };
 
   const enemyTurn = () => {
     setTimeout(() => {
-      const attackRoll = rollDice(20);
-      addLog(`${enemy.name} ataca con ${enemy.attackName}: (d20) ${attackRoll}`, 'info');
+      const dmg = rollDice(8) + (combatEnemy.isDragon ? 10 : 2);
+      const newHp = Math.max(0, character.hp - dmg);
+      setCharacter(prev => ({ ...prev, hp: newHp }));
+      addLog(`El ${combatEnemy.name} contraataca causando ${dmg} de daño.`, 'danger');
 
-      if (attackRoll >= character.ac) {
-        const damage = Math.floor(Math.random() * enemy.damage) + 2;
-        const newHp = Math.max(0, character.hp - damage);
-        setCharacter(prev => ({ ...prev, hp: newHp }));
-        addLog(`${enemy.name} te golpea por ${damage} de daño.`, 'danger');
-
-        if (newHp <= 0) {
-          setGameState('gameover');
-          addLog("Has caído en combate...", "danger");
-        }
-      } else {
-        addLog(`¡El ataque del ${enemy.name} rebota en tu armadura!`, 'info');
+      if (newHp <= 0) {
+        setGameState('gameover');
       }
     }, 1000);
-  }
+  };
 
-  const takeAction = (action) => {
-    if (gameState === 'combat') {
-      if (action === 'attack') handleAttack();
-      if (action === 'heal') {
-        const healAmt = rollDice(8) + 4;
-        setCharacter(prev => ({ ...prev, hp: Math.min(prev.maxHp, prev.hp + healAmt) }));
-        addLog(`Usas una poción y recuperas ${healAmt} HP`, 'success');
-        enemyTurn();
-      }
-      return;
-    }
-
-    switch (action) {
-      case 'investigate':
-        addLog("Investigas el entorno cuidadosamente...", "narrative");
-        const roll = rollDice(20);
-        if (roll > 12) {
-          addLog("¡Encuentras huellas frescas! Algo se acerca...", "info");
-          setTimeout(startCombat, 1500);
-        } else {
-          addLog("No parece haber nada fuera de lo común.", "system");
-        }
-        break;
-      case 'attack':
-        addLog("¡Mueves tu arma al aire, listo para el combate!", "narrative");
-        break;
-      case 'heal':
-        const healAmt = rollDice(8) + 4;
-        setCharacter(prev => ({ ...prev, hp: Math.min(prev.maxHp, prev.hp + healAmt) }));
-        addLog(`Usas una poción y recuperas ${healAmt} HP`, 'success');
-        break;
-      case 'reset':
-        window.location.reload();
-        break;
-      default:
-        break;
-    }
-  }
+  const handleVictory = () => {
+    confetti({
+      particleCount: 150,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
+    addLog(`¡Has derrotado al ${combatEnemy.name}!`, 'success');
+    setCharacter(prev => ({
+      ...prev,
+      xp: prev.xp + (combatEnemy.isDragon ? 1000 : 50),
+      gold: prev.gold + (combatEnemy.isDragon ? 5000 : 20)
+    }));
+    setEnemies(prev => prev.filter(e => e.x !== playerPos.x || e.y !== playerPos.y));
+    setGameState('world');
+  };
 
   return (
-    <div className={`game-container state-${gameState}`}>
-      {/* Top Header */}
-      <header className="game-header glass-panel">
-        <div className="char-profile">
-          <div className="char-avatar"><i data-lucide="shield"></i></div>
-          <div className="char-info">
-            <h2 className="fantasy-font glow-text">{character.name}</h2>
-            <p>Nivel {character.level} {character.class}</p>
-          </div>
-        </div>
+    <div className="app-container">
+      <AnimatePresence mode="wait">
+        {gameState === 'creation' && (
+          <CharacterCreation onComplete={handleCreation} />
+        )}
 
-        <div className="vitals">
-          <div className="stat-box">
-            <span>HP</span>
-            <div className="hp-container">
-              <div className="hp-bar">
-                <div className="hp-fill" style={{ width: `${(character.hp / character.maxHp) * 100}%` }}></div>
-              </div>
-              <span className="hp-numbers">{character.hp}/{character.maxHp}</span>
-            </div>
-          </div>
-          <div className="stat-box">
-            <span className="ac-label">AC</span>
-            <div className="ac-circle">{character.ac}</div>
-          </div>
-        </div>
-      </header>
-
-      <main className="game-main">
-        {/* Left Side: Stats */}
-        <aside className="side-panel glass-panel">
-          <h3 className="fantasy-font section-title">Atributos</h3>
-          <div className="stats-grid">
-            {Object.entries(character.stats).map(([stat, val]) => (
-              <div key={stat} className="stat-item">
-                <span className="stat-label">{stat.toUpperCase()}</span>
-                <span className="stat-value">{val}</span>
-                <span className="stat-mod">+{Math.floor((val - 10) / 2)}</span>
-              </div>
-            ))}
-          </div>
-
-          <h3 className="fantasy-font section-title" style={{ marginTop: '2rem' }}>Inventario</h3>
-          <ul className="inventory-list">
-            {character.inventory.map((item, i) => (
-              <li key={i} className="inventory-item">
-                <i data-lucide="package" style={{ width: 14, height: 14, marginRight: 8 }}></i>
-                {item}
-              </li>
-            ))}
-          </ul>
-          <div className="gold-display">
-            <i data-lucide="coins" style={{ color: 'var(--accent)', marginRight: 8 }}></i>
-            {character.gold} GP
-          </div>
-        </aside>
-
-        {/* Center: Action & Log */}
-        <section className="action-area">
-          {gameState === 'combat' && enemy && (
-            <div className="enemy-card glass-panel animate-slide-down">
-              <div className="enemy-header">
-                <h3 className="fantasy-font">{enemy.name}</h3>
-                <div className="enemy-hp-bar">
-                  <div className="enemy-hp-fill" style={{ width: `${(enemy.hp / enemy.maxHp) * 100}%` }}></div>
+        {gameState === 'world' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="game-layout">
+            <header className="premium-nav glass-card">
+              <div className="user-stats">
+                <div className="avatar">🧙‍♂️</div>
+                <div>
+                  <h2 className="fantasy-title">{character.name}</h2>
+                  <span className="lvl-badge">LVL {character.level} {character.class.name}</span>
                 </div>
-                <span className="enemy-hp-text">{enemy.hp} / {enemy.maxHp} HP</span>
               </div>
-              <div className="enemy-visual">👹</div>
-            </div>
-          )}
-
-          {gameState === 'victory' && (
-            <div className="victory-overlay glass-panel animate-pop-in">
-              <h1 className="fantasy-font glow-text">¡VICTORIA!</h1>
-              <p>Has derrotado a tus enemigos y sobrevivido un día más.</p>
-              <button onClick={() => setGameState('exploration')} className="action-btn primary-btn">Continuar Aventura</button>
-            </div>
-          )}
-
-          {gameState === 'gameover' && (
-            <div className="gameover-overlay glass-panel animate-pop-in">
-              <h1 className="fantasy-font" style={{ color: 'var(--danger)' }}>HAS MUERTO</h1>
-              <p>Tu historia termina aquí...</p>
-              <button onClick={() => takeAction('reset')} className="action-btn danger-btn">Reintentar</button>
-            </div>
-          )}
-
-          <div className="log-container glass-panel">
-            {log.map((entry, i) => (
-              <div key={i} className={`log-entry ${entry.type}`}>
-                {entry.text}
+              <div className="resource-bars">
+                <div className="bar-group">
+                  <div className="bar-label">HP <Heart size={14} fill="#ef4444" /></div>
+                  <div className="bar-bg"><div className="bar-fill hp" style={{ width: `${(character.hp / character.maxHp) * 100}%` }}></div></div>
+                </div>
+                <div className="bar-group">
+                  <div className="bar-label">MANA <Zap size={14} fill="#3b82f6" /></div>
+                  <div className="bar-bg"><div className="bar-fill mana" style={{ width: `${(character.mana / character.maxMana) * 100}%` }}></div></div>
+                </div>
               </div>
-            ))}
-            <div ref={logEndRef} />
-          </div>
+              <div className="gold-box"><Coins size={18} /> {character.gold} GP</div>
+            </header>
 
-          <div className="dice-controls glass-panel">
-            <button onClick={() => rollDice(20)} className="dice-btn d20">d20</button>
-            <button onClick={() => rollDice(12)} className="dice-btn">d12</button>
-            <button onClick={() => rollDice(10)} className="dice-btn">d10</button>
-            <button onClick={() => rollDice(8)} className="dice-btn">d8</button>
-            <button onClick={() => rollDice(6)} className="dice-btn">d6</button>
-            <button onClick={() => rollDice(4)} className="dice-btn">d4</button>
-          </div>
-        </section>
+            <main className="game-content">
+              <aside className="left-panel">
+                <TacticalMap
+                  playerPos={playerPos}
+                  enemies={enemies}
+                  dragonPos={dragonPos}
+                  onMove={handleMove}
+                />
+              </aside>
 
-        {/* Right Side: Quick Actions */}
-        <aside className="side-panel glass-panel">
-          <h3 className="fantasy-font section-title">Acciones</h3>
-          <div className="action-buttons">
-            {gameState === 'exploration' ? (
-              <>
-                <button onClick={() => takeAction('investigate')} className="action-btn">
-                  <i data-lucide="search" style={{ marginRight: 8 }}></i> Investigar
-                </button>
-                <button onClick={() => takeAction('attack')} className="action-btn primary-btn">
-                  <i data-lucide="swords" style={{ marginRight: 8 }}></i> Alistarse
-                </button>
-              </>
-            ) : (
-              <>
-                <button onClick={() => takeAction('attack')} className="action-btn primary-btn pulse">
-                  <i data-lucide="swords" style={{ marginRight: 8 }}></i> Atacar
-                </button>
-                <button onClick={() => takeAction('heal')} className="action-btn success-btn">
-                  <i data-lucide="heart" style={{ marginRight: 8 }}></i> Poción
-                </button>
-              </>
+              <section className="center-panel">
+                <div className="log-panel glass-card">
+                  <h3 className="fantasy-title"><Scroll size={18} /> Diario de Viaje</h3>
+                  <div className="log-list">
+                    {log.map(item => (
+                      <div key={item.id} className={`log-item ${item.type}`}>
+                        {item.text}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+
+              <aside className="right-panel glass-card">
+                <h3 className="fantasy-title"><Sparkles size={18} /> Libro de Hechizos</h3>
+                <div className="spell-list">
+                  {SPELLS.map(spell => (
+                    <div key={spell.id} className="spell-card">
+                      <span className="spell-icon">{spell.icon}</span>
+                      <div className="spell-info">
+                        <h4>{spell.name}</h4>
+                        <small>{spell.cost} Mana</small>
+                      </div>
+                      <button className="spell-cast-btn" disabled={character.mana < spell.cost}>Lanzar</button>
+                    </div>
+                  ))}
+                </div>
+              </aside>
+            </main>
+          </motion.div>
+        )}
+
+        {gameState === 'combat' && (
+          <motion.div
+            initial={{ scale: 1.2, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="combat-screen"
+          >
+            <div className="combat-stage">
+              <div className="combatant player">
+                <div className="sprite">🧙‍♂️</div>
+                <div className="name-plate">{character.name}</div>
+              </div>
+              <div className="vs fantasy-title">VS</div>
+              <div className="combatant enemy">
+                <div className="sprite">{combatEnemy.isDragon ? '🐉' : '👹'}</div>
+                <div className="name-plate">{combatEnemy.name}</div>
+                <div className="enemy-hp-bar">
+                  <div className="fill" style={{ width: `${(combatEnemy.hp / combatEnemy.maxHp) * 100}%` }}></div>
+                </div>
+              </div>
+            </div>
+
+            <div className="combat-actions glass-card">
+              <button onClick={handleAttack} className="premium-button attack-btn"><Swords /> ATACAR</button>
+              <button className="premium-button spell-btn"><Zap /> HECHIZO</button>
+              <button className="premium-button flee-btn" onClick={() => setGameState('world')}>HUIR</button>
+            </div>
+
+            {lastRoll && (
+              <div className="roll-visualizer">
+                <div className="dice-icon">🎲</div>
+                <div className="dice-val">{lastRoll.value}</div>
+              </div>
             )}
-          </div>
-
-          {lastRoll && (
-            <div className="roll-result-box">
-              <span className="roll-label">Resultado d{lastRoll.sides}</span>
-              <div className="roll-value">{lastRoll.value}</div>
-            </div>
-          )}
-        </aside>
-      </main>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
-  )
-}
+  );
+};
 
-export default App
+export default App;
