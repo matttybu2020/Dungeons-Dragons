@@ -239,10 +239,55 @@ export const useGameStore = create(
                 activeQuests: [...state.activeQuests, quest]
             })),
 
-            completeQuest: (questId) => set((state) => ({
-                activeQuests: state.activeQuests.filter(q => q.id !== questId),
-                completedQuests: [...state.completedQuests, questId]
-            })),
+            completeQuest: (questId, reward) => set((state) => {
+                const quest = state.activeQuests.find(q => q.id === questId);
+                if (!quest) return state;
+
+                // Grant rewards
+                let charUpdates = { ...state.character };
+                if (reward.xp) charUpdates.xp += reward.xp;
+                if (reward.gold) charUpdates.gold += reward.gold;
+                if (reward.skillPoint) charUpdates.skillPoints += reward.skillPoint;
+
+                return {
+                    character: charUpdates,
+                    activeQuests: state.activeQuests.filter(q => q.id !== questId),
+                    completedQuests: [...state.completedQuests, questId]
+                };
+            }),
+
+            checkQuests: () => set((state) => {
+                const { activeQuests, stats, character } = state;
+                let questsToComplete = [];
+
+                activeQuests.forEach(quest => {
+                    let completed = false;
+                    if (quest.goal.type === 'kill' && stats.enemiesKilled >= quest.goal.target) completed = true;
+                    if (quest.goal.type === 'gold' && character.gold >= quest.goal.target) completed = true;
+                    if (quest.goal.type === 'dragon' && stats.dragonsDefeated >= quest.goal.target) completed = true;
+
+                    if (completed) questsToComplete.push(quest);
+                });
+
+                if (questsToComplete.length === 0) return state;
+
+                // Recursively complete if multiple (simplified here to just first one for state safety)
+                const q = questsToComplete[0];
+                const newActive = activeQuests.filter(quest => quest.id !== q.id);
+                const newCompleted = [...state.completedQuests, q.id];
+
+                // Rewards
+                let char = { ...state.character };
+                if (q.reward.xp) char.xp += q.reward.xp;
+                if (q.reward.gold) char.gold += q.reward.gold;
+                if (q.reward.skillPoint) char.skillPoints += q.reward.skillPoint;
+
+                return {
+                    character: char,
+                    activeQuests: newActive,
+                    completedQuests: newCompleted
+                };
+            }),
 
             // Stats
             incrementStat: (statName, amount = 1) => set((state) => ({

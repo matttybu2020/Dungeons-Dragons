@@ -1,17 +1,20 @@
 :root {
-  --primary: #a855f7;
-  --primary-glow: rgba(168, 85, 247, 0.4);
-  --secondary: #ec4899;
-  --accent: #fbbf24;
-  --background: #020617;
-  --surface: rgba(15, 23, 42, 0.8);
-  --glass: rgba(255, 255, 255, 0.03);
-  --glass-border: rgba(255, 255, 255, 0.08);
+  --primary: #8b5cf6;
+  --primary-glow: rgba(139, 92, 246, 0.4);
+  --secondary: #d946ef;
+  --secondary-glow: rgba(217, 70, 239, 0.4);
+  --accent: #f59e0b;
+  --background: #050505;
+  --surface: rgba(15, 23, 42, 0.9);
+  --glass: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
   --text-main: #f8fafc;
-  --text-dim: #94a3b8;
-  --danger: #ef4444;
-  --success: #22c55e;
-  --dragon-gold: radial-gradient(circle, #fcd34d 0%, #b45309 100%);
+  --text-dim: #cbd5e1;
+  --danger: #f43f5e;
+  --success: #10b981;
+  --mythic: linear-gradient(45deg, #f59e0b, #ef4444, #8b5cf6);
+  --mythic-glow: 0 0 20px rgba(245, 158, 11, 0.6);
+  --dragon-gold: radial-gradient(circle, #fbbf24 0%, #92400e 100%);
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Outfit:wght@300;400;600&display=swap');
@@ -70,23 +73,101 @@ body::before {
 
 .premium-button {
   background: linear-gradient(135deg, var(--primary), var(--secondary));
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: white;
   padding: 12px 24px;
   border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
   box-shadow: 0 4px 15px var(--primary-glow);
+  position: relative;
+  overflow: hidden;
+}
+
+.premium-button::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.premium-button:hover::after {
+  opacity: 1;
 }
 
 .premium-button:hover {
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 8px 25px var(--primary-glow);
-  filter: brightness(1.1);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 30px var(--primary-glow), 0 0 20px var(--secondary-glow);
+  filter: brightness(1.2);
 }
+
+.premium-button:active {
+  transform: scale(0.95);
+}
+
+/* Mythic Aura */
+.mythic-aura {
+  position: relative;
+}
+
+.mythic-aura::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: var(--mythic);
+  border-radius: inherit;
+  z-index: -1;
+  animation: rotate-mythic 5s linear infinite;
+  filter: blur(8px);
+}
+
+@keyframes rotate-mythic {
+  from {
+    filter: hue-rotate(0deg);
+  }
+
+  to {
+    filter: hue-rotate(360deg);
+  }
+}
+
+/* God-Level Screenshake */
+.shake-screen {
+  animation: epic-shake 0.5s cubic-bezier(.36, .07, .19, .97) both;
+}
+
+@keyframes epic-shake {
+
+  10%,
+  90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+
+  20%,
+  80% {
+    transform: translate3d(2px, 0, 0);
+  }
+
+  30%,
+  50%,
+  70% {
+    transform: translate3d(-4px, 0, 0);
+  }
+
+  40%,
+  60% {
+    transform: translate3d(4px, 0, 0);
+  }
+}
+
 
 /* Map Grid Styles */
 .game-grid {

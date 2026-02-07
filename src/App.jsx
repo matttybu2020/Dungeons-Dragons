@@ -4,7 +4,8 @@ import {
   Shield, Swords, Heart, Zap, Search, User,
   Map as MapIcon, Scroll, Flame, Sparkles,
   Skull, Trophy, Coins, Settings, ArrowRight,
-  Save, GitBranch, Menu, X, Volume2, Package, ShoppingBag, Hammer
+  Save, GitBranch, Menu, X, Volume2, Package, ShoppingBag, Hammer,
+  Users, MessageSquare, ListTodo
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import './App.css';
@@ -16,6 +17,8 @@ import SkillTree from './components/SkillTree';
 import ItemShop from './components/ItemShop';
 import InventoryPanel from './components/InventoryPanel';
 import CraftingPanel from './components/CraftingPanel';
+import QuestLog from './components/QuestLog';
+import SocialSidebar from './components/SocialSidebar';
 import NarrativeModal from './components/NarrativeModal';
 import AchievementPanel from './components/AchievementPanel';
 import { useGameStore } from './store/gameStore';
@@ -108,8 +111,13 @@ const App = () => {
   const [showInventory, setShowInventory] = useState(false);
   const [showShop, setShowShop] = useState(false);
   const [showCrafting, setShowCrafting] = useState(false);
+  const [showQuests, setShowQuests] = useState(false);
+  const [showSocial, setShowSocial] = useState(false);
   const [narrativeEvent, setNarrativeEvent] = useState(null);
   const [combatParticles, setCombatParticles] = useState([]);
+  const [isShaking, setIsShaking] = useState(false);
+
+  const { checkQuests } = useGameStore();
 
   useEffect(() => {
     if (character.name) {
@@ -152,6 +160,12 @@ const App = () => {
   const handleNarrativeChoice = (choice) => {
     choice.action();
     setNarrativeEvent(null);
+    checkQuests();
+  };
+
+  const triggerShake = () => {
+    setIsShaking(true);
+    setTimeout(() => setIsShaking(false), 500);
   };
 
   const spawnParticles = (type, x, y) => {
@@ -246,6 +260,7 @@ const App = () => {
       addLog(`¡Golpeas al ${combatEnemy.name} por ${dmg} de daño!`, 'success');
       incrementStat('damageDealt', dmg);
       spawnParticles('blood', 500, 300); // Visual hit
+      triggerShake();
 
       if (newEnemyHp <= 0) {
         handleVictory();
@@ -318,7 +333,11 @@ const App = () => {
         )}
 
         {gameState === 'world' && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="game-layout">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className={`game-layout ${isShaking ? 'shake-screen' : ''}`}
+          >
             <header className="premium-nav glass-card">
               <div className="nav-left">
                 <div className="user-stats">
@@ -363,6 +382,13 @@ const App = () => {
                 </button>
                 <button onClick={() => setShowCrafting(true)} className="nav-btn" title="Forja">
                   <Hammer size={20} />
+                </button>
+                <button onClick={() => setShowQuests(true)} className="nav-btn" title="Misiones">
+                  <ListTodo size={20} />
+                  {useGameStore.getState().activeQuests.length > 0 && <span className="notification-dot"></span>}
+                </button>
+                <button onClick={() => setShowSocial(true)} className="nav-btn" title="Social">
+                  <Users size={20} />
                 </button>
                 <button onClick={() => setShowAchievements(true)} className="nav-btn" title="Logros">
                   <Trophy size={20} />
@@ -415,6 +441,14 @@ const App = () => {
             <InventoryPanel isOpen={showInventory} onClose={() => setShowInventory(false)} />
             <ItemShop isOpen={showShop} onClose={() => setShowShop(false)} />
             <CraftingPanel isOpen={showCrafting} onClose={() => setShowCrafting(false)} />
+            <QuestLog isOpen={showQuests} onClose={() => setShowQuests(false)} />
+
+            {/* Social / Multiplayer Sidebar Mock */}
+            <AnimatePresence>
+              {showSocial && (
+                <SocialSidebar onClose={() => setShowSocial(false)} />
+              )}
+            </AnimatePresence>
 
             {/* Narrative Event Modal */}
             <AnimatePresence>
