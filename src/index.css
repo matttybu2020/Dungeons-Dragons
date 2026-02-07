@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Outfit:wght@300;400;600&display=swap');
+
 :root {
   --primary: #8b5cf6;
   --primary-glow: rgba(139, 92, 246, 0.4);
@@ -17,7 +19,6 @@
   --dragon-gold: radial-gradient(circle, #fbbf24 0%, #92400e 100%);
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Outfit:wght@300;400;600&display=swap');
 
 body {
   margin: 0;
