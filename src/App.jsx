@@ -14,6 +14,7 @@ import DragonBoss from './components/DragonBoss';
 import ProceduralMap from './components/ProceduralMap';
 import SpellBook from './components/SpellBook';
 import SkillTree from './components/SkillTree';
+import SaveLoadMenu from './components/SaveLoadMenu';
 import ItemShop from './components/ItemShop';
 import InventoryPanel from './components/InventoryPanel';
 import CraftingPanel from './components/CraftingPanel';
