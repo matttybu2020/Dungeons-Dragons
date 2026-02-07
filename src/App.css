@@ -80,7 +80,90 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 30px;
+  padding: 10px 30px;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.nav-left,
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.nav-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.xp-box {
+  width: 200px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.xp-label {
+  font-size: 0.7rem;
+  font-weight: 900;
+  color: var(--primary);
+}
+
+.xp-bar-bg {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.xp-bar-fill {
+  height: 100%;
+  background: var(--primary);
+  box-shadow: 0 0 10px var(--primary-glow);
+  transition: width 0.3s ease;
+}
+
+.nav-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  color: white;
+  width: 45px;
+  height: 45px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.nav-btn:hover {
+  background: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.notification-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 12px;
+  height: 12px;
+  background: #ef4444;
+  border: 2px solid #0f172a;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+.gameover-screen {
+  text-align: center;
+  padding: 60px;
 }
 
 .user-stats {
@@ -90,10 +173,10 @@
 }
 
 .avatar {
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   background: var(--glass);
-  width: 60px;
-  height: 60px;
+  width: 55px;
+  height: 55px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -103,23 +186,23 @@
 
 .resource-bars {
   display: flex;
-  gap: 20px;
+  gap: 15px;
 }
 
 .bar-group {
-  width: 200px;
+  width: 150px;
 }
 
 .bar-label {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .bar-bg {
-  height: 8px;
+  height: 6px;
   background: rgba(0, 0, 0, 0.5);
-  border-radius: 4px;
+  border-radius: 3px;
   overflow: hidden;
 }
 

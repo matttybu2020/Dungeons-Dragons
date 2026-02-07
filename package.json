@@ -10,11 +10,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-spring/web": "^10.0.3",
     "canvas-confetti": "^1.9.4",
     "framer-motion": "^12.33.0",
     "lucide-react": "^0.563.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "react-howler": "^5.2.0",
+    "react-particles": "^2.12.2",
+    "tsparticles": "^3.9.1",
+    "zustand": "^5.0.11"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

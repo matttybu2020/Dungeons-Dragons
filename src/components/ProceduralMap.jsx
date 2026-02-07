@@ -45,11 +45,22 @@ const generateDungeon = (size = 10, theme) => {
 const ProceduralMap = ({ onCellClick, playerPos, theme }) => {
     const [dungeon, setDungeon] = useState([]);
     const [discovered, setDiscovered] = useState(new Set());
+    const [weather, setWeather] = useState([]);
 
     useEffect(() => {
         const newDungeon = generateDungeon(10, theme);
         setDungeon(newDungeon);
         setDiscovered(new Set(['0-0']));
+
+        // Generate ambient particles
+        const particles = Array(20).fill(0).map(() => ({
+            id: Math.random(),
+            x: Math.random() * 100,
+            y: Math.random() * 100,
+            size: 2 + Math.random() * 4,
+            duration: 3 + Math.random() * 5
+        }));
+        setWeather(particles);
     }, [theme]);
 
     useEffect(() => {
@@ -78,7 +89,33 @@ const ProceduralMap = ({ onCellClick, playerPos, theme }) => {
     };
 
     return (
-        <div className="procedural-map glass-card">
+        <div className="procedural-map glass-card" style={{ position: 'relative', overflow: 'hidden' }}>
+            {/* Ambient Particles */}
+            <div className="weather-layer">
+                {weather.map(p => (
+                    <motion.div
+                        key={p.id}
+                        className="particle"
+                        initial={{ x: `${p.x}%`, y: `${p.y}%`, opacity: 0 }}
+                        animate={{
+                            y: [`${p.y}%`, `${p.y - 10}%`, `${p.y}%`],
+                            opacity: [0.2, 0.5, 0.2]
+                        }}
+                        transition={{ repeat: Infinity, duration: p.duration }}
+                        style={{
+                            position: 'absolute',
+                            width: p.size,
+                            height: p.size,
+                            background: theme.id === 'volcano' ? '#f97316' : '#fff',
+                            borderRadius: '50%',
+                            filter: 'blur(2px)',
+                            pointerEvents: 'none',
+                            zIndex: 1
+                        }}
+                    />
+                ))}
+            </div>
+
             <div className="map-header">
                 <span className="fantasy-title">{theme.name}</span>
                 <button
@@ -88,7 +125,7 @@ const ProceduralMap = ({ onCellClick, playerPos, theme }) => {
                     🔄 Nueva Mazmorra
                 </button>
             </div>
-            <div className="dungeon-grid" style={{ '--theme-color': theme.color }}>
+            <div className="dungeon-grid" style={{ '--theme-color': theme.color, position: 'relative', zIndex: 2 }}>
                 {dungeon.map((row, y) =>
                     row.map((cell, x) => {
                         const isPlayer = playerPos.x === x && playerPos.y === y;
@@ -102,8 +139,16 @@ const ProceduralMap = ({ onCellClick, playerPos, theme }) => {
                                 whileHover={{ scale: isDiscovered ? 1.1 : 1 }}
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: isDiscovered ? 1 : 0.3 }}
+                                transition={{ duration: 0.5 }}
                             >
-                                {isPlayer ? '🧙‍♂️' : isDiscovered ? getCellEmoji(cell) : '🌫️'}
+                                {isPlayer ? (
+                                    <motion.span
+                                        animate={{ scale: [1, 1.2, 1] }}
+                                        transition={{ repeat: Infinity, duration: 2 }}
+                                    >
+                                        🧙‍♂️
+                                    </motion.span>
+                                ) : isDiscovered ? getCellEmoji(cell) : '🌫️'}
                             </motion.div>
                         );
                     })
