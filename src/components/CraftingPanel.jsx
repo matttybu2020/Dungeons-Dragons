@@ -92,11 +92,13 @@ const CraftingPanel = ({ isOpen, onClose }) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
+                onClick={onClose}
             >
                 <motion.div
                     className="crafting-panel glass-card"
                     initial={{ scale: 0.9, y: 50 }}
                     animate={{ scale: 1, y: 0 }}
+                    onClick={(e) => e.stopPropagation()}
                 >
                     <div className="crafting-header">
                         <h2 className="fantasy-title"><Hammer /> Herrería Legendaria</h2>

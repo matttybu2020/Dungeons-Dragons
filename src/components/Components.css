@@ -1207,3 +1207,69 @@
     top: 20px;
     right: 20px;
 }
+
+/* Responsive Fixes for Components */
+@media (max-width: 768px) {
+
+    .inventory-panel,
+    .quest-panel,
+    .shop-panel,
+    .crafting-panel,
+    .achievement-panel,
+    .skill-tree-panel {
+        width: 100vw !important;
+        height: 100vh !important;
+        max-height: 100vh !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        padding: 20px !important;
+        position: fixed !important;
+    }
+
+    .social-sidebar {
+        width: 100vw !important;
+        height: 100vh !important;
+        right: 0 !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        border-radius: 0 !important;
+        z-index: 3000 !important;
+        position: fixed !important;
+    }
+
+    .shop-items-grid,
+    .crafting-grid,
+    .achievements-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .equipment-layout {
+        flex-direction: column;
+    }
+
+    .char-visual {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+
+    .quest-sections {
+        gap: 20px;
+    }
+
+    .log-panel {
+        max-height: 300px;
+    }
+
+    .inventory-overlay,
+    .shop-overlay,
+    .quest-overlay,
+    .crafting-overlay,
+    .achievement-overlay {
+        padding: 0 !important;
+    }
+}

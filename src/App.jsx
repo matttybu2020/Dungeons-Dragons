@@ -89,7 +89,8 @@ const CharacterCreation = ({ onComplete }) => {
 const App = () => {
   const {
     character, setCharacter, updateCharacter, addXP, addGold,
-    unlockAchievement, incrementStat, currentSave, addItem, addMaterial
+    unlockAchievement, incrementStat, currentSave, addItem, addMaterial,
+    activeQuests
   } = useGameStore();
 
   const [gameState, setGameState] = useState('creation'); // creation, world, combat
@@ -386,7 +387,7 @@ const App = () => {
                 </button>
                 <button onClick={() => setShowQuests(true)} className="nav-btn" title="Misiones">
                   <ListTodo size={20} />
-                  {useGameStore.getState().activeQuests.length > 0 && <span className="notification-dot"></span>}
+                  {activeQuests.length > 0 && <span className="notification-dot"></span>}
                 </button>
                 <button onClick={() => setShowSocial(true)} className="nav-btn" title="Social">
                   <Users size={20} />

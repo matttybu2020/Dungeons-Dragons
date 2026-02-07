@@ -8,9 +8,10 @@ const QuestLog = ({ isOpen, onClose }) => {
     const { activeQuests, completedQuests, stats, character, addQuest } = useGameStore();
 
     const getProgress = (quest) => {
-        if (quest.goal.type === 'kill') return Math.min(stats.enemiesKilled, quest.goal.target);
-        if (quest.goal.type === 'gold') return Math.min(character.gold, quest.goal.target);
-        if (quest.goal.type === 'dragon') return Math.min(stats.dragonsDefeated, quest.goal.target);
+        if (!quest || !quest.goal) return 0;
+        if (quest.goal.type === 'kill') return Math.min(stats.enemiesKilled || 0, quest.goal.target);
+        if (quest.goal.type === 'gold') return Math.min(character.gold || 0, quest.goal.target);
+        if (quest.goal.type === 'dragon') return Math.min(stats.dragonsDefeated || 0, quest.goal.target);
         return 0;
     };
 
@@ -26,12 +27,14 @@ const QuestLog = ({ isOpen, onClose }) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
+                onClick={onClose}
             >
                 <motion.div
                     className="quest-panel glass-card"
                     initial={{ x: -200, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     exit={{ x: -200, opacity: 0 }}
+                    onClick={(e) => e.stopPropagation()}
                 >
                     <div className="quest-header">
                         <h2 className="fantasy-title"><Scroll /> Diario de Misiones</h2>

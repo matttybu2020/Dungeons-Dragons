@@ -6,18 +6,18 @@ import { ACHIEVEMENTS } from '../data/achievements';
 import confetti from 'canvas-confetti';
 
 const AchievementPanel = ({ isOpen, onClose }) => {
-    const { unlockedAchievements, stats, addGold, addXP } = useGameStore();
+    const { unlockedAchievements, stats, addGold, addXP, unlockAchievement } = useGameStore();
     const [selectedAchievement, setSelectedAchievement] = useState(null);
 
     const checkAndUnlock = (achievement) => {
-        if (unlockedAchievements.includes(achievement.id)) return false;
+        if (!stats || !achievement || unlockedAchievements.includes(achievement.id)) return false;
 
         if (achievement.condition(stats)) {
-            useGameStore.getState().unlockAchievement(achievement.id);
+            unlockAchievement(achievement.id);
 
             // Give rewards
-            if (achievement.reward.gold) addGold(achievement.reward.gold);
-            if (achievement.reward.xp) addXP(achievement.reward.xp);
+            if (achievement.reward?.gold) addGold(achievement.reward.gold);
+            if (achievement.reward?.xp) addXP(achievement.reward.xp);
 
             // Celebration
             confetti({
@@ -47,12 +47,14 @@ const AchievementPanel = ({ isOpen, onClose }) => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
+                    onClick={onClose}
                 >
                     <motion.div
                         className="achievement-panel glass-card"
-                        initial={{ scale: 0.8, y: 50 }}
-                        animate={{ scale: 1, y: 0 }}
-                        exit={{ scale: 0.8, y: 50 }}
+                        initial={{ scale: 0.8, y: 50, opacity: 0 }}
+                        animate={{ scale: 1, y: 0, opacity: 1 }}
+                        exit={{ scale: 0.8, y: 50, opacity: 0 }}
+                        onClick={(e) => e.stopPropagation()}
                     >
                         <div className="panel-header">
                             <h2 className="fantasy-title"><Trophy size={24} /> Logros</h2>
@@ -62,7 +64,7 @@ const AchievementPanel = ({ isOpen, onClose }) => {
                         <div className="achievements-grid">
                             {ACHIEVEMENTS.map((achievement) => {
                                 const isUnlocked = unlockedAchievements.includes(achievement.id);
-                                const canUnlock = !isUnlocked && achievement.condition(stats);
+                                const canUnlock = !isUnlocked && stats && achievement.condition(stats);
 
                                 return (
                                     <motion.div
@@ -73,7 +75,7 @@ const AchievementPanel = ({ isOpen, onClose }) => {
                                             if (canUnlock) checkAndUnlock(achievement);
                                             setSelectedAchievement(achievement);
                                         }}
-                                        whileHover={{ scale: 1.05 }}
+                                        whileHover={{ scale: 1.02 }}
                                     >
                                         <div className="achievement-icon">
                                             {isUnlocked ? achievement.icon : <Lock size={32} />}
@@ -108,12 +110,12 @@ const AchievementPanel = ({ isOpen, onClose }) => {
 
                         <div className="achievement-stats">
                             <div className="stat-item">
-                                <span>Desbloqueados</span>
+                                <span>Progreso Total</span>
                                 <strong>{unlockedAchievements.length} / {ACHIEVEMENTS.length}</strong>
                             </div>
-                            <div className="progress-bar">
+                            <div className="progress-bar-bg">
                                 <div
-                                    className="progress-fill"
+                                    className="progress-bar-fill"
                                     style={{ width: `${(unlockedAchievements.length / ACHIEVEMENTS.length) * 100}%` }}
                                 />
                             </div>
