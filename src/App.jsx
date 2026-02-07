@@ -4,7 +4,7 @@ import {
   Shield, Swords, Heart, Zap, Search, User,
   Map as MapIcon, Scroll, Flame, Sparkles,
   Skull, Trophy, Coins, Settings, ArrowRight,
-  Save, GitBranch, Menu, X, Volume2
+  Save, GitBranch, Menu, X, Volume2, Package, ShoppingBag, Hammer
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import './App.css';
@@ -13,10 +13,14 @@ import DragonBoss from './components/DragonBoss';
 import ProceduralMap from './components/ProceduralMap';
 import SpellBook from './components/SpellBook';
 import SkillTree from './components/SkillTree';
-import SaveLoadMenu from './components/SaveLoadMenu';
+import ItemShop from './components/ItemShop';
+import InventoryPanel from './components/InventoryPanel';
+import CraftingPanel from './components/CraftingPanel';
+import NarrativeModal from './components/NarrativeModal';
 import AchievementPanel from './components/AchievementPanel';
 import { useGameStore } from './store/gameStore';
 import { audioManager } from './utils/AudioManager';
+import { ALL_ITEMS } from './data/items';
 
 // --- CONFIGURACIÓN Y MOCKS ---
 const CLASSES = [
@@ -81,7 +85,7 @@ const CharacterCreation = ({ onComplete }) => {
 const App = () => {
   const {
     character, setCharacter, updateCharacter, addXP, addGold,
-    unlockAchievement, incrementStat, currentSave
+    unlockAchievement, incrementStat, currentSave, addItem, addMaterial
   } = useGameStore();
 
   const [gameState, setGameState] = useState('creation'); // creation, world, combat
@@ -101,12 +105,77 @@ const App = () => {
   const [showSkillTree, setShowSkillTree] = useState(false);
   const [showSaves, setShowSaves] = useState(false);
   const [showAchievements, setShowAchievements] = useState(false);
+  const [showInventory, setShowInventory] = useState(false);
+  const [showShop, setShowShop] = useState(false);
+  const [showCrafting, setShowCrafting] = useState(false);
+  const [narrativeEvent, setNarrativeEvent] = useState(null);
+  const [combatParticles, setCombatParticles] = useState([]);
 
   useEffect(() => {
     if (character.name) {
       setGameState('world');
       audioManager.playMusic('world');
     }
+  }, []);
+
+  const generateNarrativeEvent = (x, y) => {
+    const events = [
+      {
+        title: "El Ermitaño Ciego",
+        description: "Un anciano medita entre las sombras. 'Puedo sentir tu destino, viajero. ¿Buscas poder o sabiduría?'",
+        type: "dialogue",
+        choices: [
+          { text: "Poder (Recibir 100 XP)", action: () => addXP(100) },
+          { text: "Sabiduría (Recibir 1 SP)", action: () => updateCharacter({ skillPoints: character.skillPoints + 1 }) }
+        ]
+      },
+      {
+        title: "Cofre Antiguo",
+        description: "Encuentras un cofre cubierto de musgo. Parece contener algo valioso.",
+        type: "discovery",
+        choices: [
+          {
+            text: "Abrir Cofre", action: () => {
+              const item = ALL_ITEMS[Math.floor(Math.random() * ALL_ITEMS.length)];
+              addItem(item);
+              addLog(`¡Has encontrado ${item.name}!`, 'success');
+            }
+          },
+          { text: "Ignorar", action: () => addLog("Decides no arriesgarte.") }
+        ]
+      }
+    ];
+
+    setNarrativeEvent(events[Math.floor(Math.random() * events.length)]);
+  };
+
+  const handleNarrativeChoice = (choice) => {
+    choice.action();
+    setNarrativeEvent(null);
+  };
+
+  const spawnParticles = (type, x, y) => {
+    const newParticles = Array(10).fill(0).map(() => ({
+      id: Math.random(),
+      x, y,
+      vx: (Math.random() - 0.5) * 10,
+      vy: (Math.random() - 0.5) * 10,
+      color: type === 'blood' ? '#ef4444' : '#fbbf24',
+      life: 1
+    }));
+    setCombatParticles(prev => [...prev, ...newParticles]);
+  };
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCombatParticles(prev => prev.map(p => ({
+        ...p,
+        x: p.x + p.vx,
+        y: p.y + p.vy,
+        life: p.life - 0.1
+      })).filter(p => p.life > 0));
+    }, 50);
+    return () => clearInterval(timer);
   }, []);
 
   const addLog = (text, type = 'info') => {
@@ -138,7 +207,12 @@ const App = () => {
     incrementStat('playTime', 1);
     audioManager.playSFX('click');
 
-    // Encuentro
+    // Rare random narrative event
+    if (Math.random() < 0.1) {
+      generateNarrativeEvent(x, y);
+    }
+
+    // Encounter
     const enemyFound = enemies.find(e => e.x === x && e.y === y);
     if (enemyFound) {
       setCombatEnemy({ ...enemyFound, maxHp: enemyFound.hp });
@@ -171,6 +245,7 @@ const App = () => {
       setCombatEnemy(prev => ({ ...prev, hp: newEnemyHp }));
       addLog(`¡Golpeas al ${combatEnemy.name} por ${dmg} de daño!`, 'success');
       incrementStat('damageDealt', dmg);
+      spawnParticles('blood', 500, 300); // Visual hit
 
       if (newEnemyHp <= 0) {
         handleVictory();
@@ -217,9 +292,18 @@ const App = () => {
     incrementStat('enemiesKilled');
     audioManager.playSFX('victory');
     audioManager.playMusic('world');
+
+    // Material Rewards
+    const mats = ['iron', 'wood', 'magic_dust'];
+    const randomMat = mats[Math.floor(Math.random() * mats.length)];
+    const amount = Math.floor(Math.random() * 3) + 1;
+    addMaterial(randomMat, amount);
+    addLog(`¡Has recolectado ${amount} de ${randomMat}!`, 'info');
+
     if (combatEnemy.isDragon) {
       incrementStat('dragonsDefeated');
       unlockAchievement('slayer_of_dragons');
+      addMaterial('dragon_scale', 2);
     }
 
     setEnemies(prev => prev.filter(e => e.x !== playerPos.x || e.y !== playerPos.y));
@@ -271,6 +355,15 @@ const App = () => {
                   <GitBranch size={20} />
                   {character.skillPoints > 0 && <span className="notification-dot"></span>}
                 </button>
+                <button onClick={() => setShowInventory(true)} className="nav-btn" title="Inventario">
+                  <Package size={20} />
+                </button>
+                <button onClick={() => setShowShop(true)} className="nav-btn" title="Tienda">
+                  <ShoppingBag size={20} />
+                </button>
+                <button onClick={() => setShowCrafting(true)} className="nav-btn" title="Forja">
+                  <Hammer size={20} />
+                </button>
                 <button onClick={() => setShowAchievements(true)} className="nav-btn" title="Logros">
                   <Trophy size={20} />
                 </button>
@@ -319,6 +412,20 @@ const App = () => {
             <SkillTree isOpen={showSkillTree} onClose={() => setShowSkillTree(false)} />
             <SaveLoadMenu isOpen={showSaves} onClose={() => setShowSaves(false)} />
             <AchievementPanel isOpen={showAchievements} onClose={() => setShowAchievements(false)} />
+            <InventoryPanel isOpen={showInventory} onClose={() => setShowInventory(false)} />
+            <ItemShop isOpen={showShop} onClose={() => setShowShop(false)} />
+            <CraftingPanel isOpen={showCrafting} onClose={() => setShowCrafting(false)} />
+
+            {/* Narrative Event Modal */}
+            <AnimatePresence>
+              {narrativeEvent && (
+                <NarrativeModal
+                  event={narrativeEvent}
+                  onClose={() => setNarrativeEvent(null)}
+                  onChoice={(choice) => handleNarrativeChoice(choice)}
+                />
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
 
@@ -380,6 +487,27 @@ const App = () => {
                 <div className="dice-val">{lastRoll.value}</div>
               </div>
             )}
+
+            {/* Combat Particles */}
+            <div className="combat-particles-layer">
+              {combatParticles.map(p => (
+                <div
+                  key={p.id}
+                  className="particle"
+                  style={{
+                    position: 'absolute',
+                    left: p.x,
+                    top: p.y,
+                    width: 6,
+                    height: 6,
+                    background: p.color,
+                    borderRadius: '50%',
+                    opacity: p.life,
+                    pointerEvents: 'none'
+                  }}
+                />
+              ))}
+            </div>
           </motion.div>
         )}
 

@@ -21,6 +21,12 @@ const INITIAL_CHARACTER = {
     },
     skills: [],
     unlockedSkills: [],
+    materials: {
+        wood: 0,
+        iron: 0,
+        magic_dust: 0,
+        dragon_scale: 0
+    },
     stats: {
         str: 10,
         dex: 10,
@@ -133,10 +139,56 @@ export const useGameStore = create(
                 stats: { ...state.stats, itemsCollected: state.stats.itemsCollected + 1 }
             })),
 
-            equipItem: (item, slot) => set((state) => ({
+            equipItem: (item, slot) => set((state) => {
+                const oldItem = state.character.equipment[slot];
+                let newInventory = state.character.inventory.filter(i => i.id !== item.id);
+                if (oldItem) newInventory.push(oldItem);
+
+                return {
+                    character: {
+                        ...state.character,
+                        equipment: { ...state.character.equipment, [slot]: item },
+                        inventory: newInventory
+                    }
+                };
+            }),
+
+            unequipItem: (slot) => set((state) => {
+                const item = state.character.equipment[slot];
+                if (!item) return state;
+
+                return {
+                    character: {
+                        ...state.character,
+                        equipment: { ...state.character.equipment, [slot]: null },
+                        inventory: [...state.character.inventory, item]
+                    }
+                };
+            }),
+
+            useItem: (item) => set((state) => {
+                if (item.type !== 'consumable') return state;
+
+                let updates = {};
+                if (item.healAmount) updates.hp = Math.min(state.character.maxHp, state.character.hp + item.healAmount);
+                if (item.manaAmount) updates.mana = Math.min(state.character.maxMana, state.character.mana + item.manaAmount);
+
+                return {
+                    character: {
+                        ...state.character,
+                        ...updates,
+                        inventory: state.character.inventory.filter(i => i.id !== item.id)
+                    }
+                };
+            }),
+
+            addMaterial: (material, amount) => set((state) => ({
                 character: {
                     ...state.character,
-                    equipment: { ...state.character.equipment, [slot]: item }
+                    materials: {
+                        ...state.character.materials,
+                        [material]: state.character.materials[material] + amount
+                    }
                 }
             })),
 
