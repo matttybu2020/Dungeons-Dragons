@@ -107,7 +107,8 @@ const ProceduralMap = ({ onCellClick, playerPos, theme, character, dungeon: dung
     };
 
     return (
-        <div className="procedural-map glass-card" style={{ position: 'relative', overflow: 'hidden' }}>
+        <div className="procedural-map glass-card">
+
             <div className="weather-layer">
                 {weather.map(p => (
                     <motion.div
@@ -142,7 +143,8 @@ const ProceduralMap = ({ onCellClick, playerPos, theme, character, dungeon: dung
                     🔄 Nueva Mazmorra
                 </button>
             </div>
-            <div className="dungeon-grid" style={{ '--theme-color': theme.color, position: 'relative', zIndex: 2 }}>
+            <div className="dungeon-grid" style={{ '--theme-color': theme.color }}>
+
                 {currentDungeon.map((row, y) =>
                     row.map((cell, x) => {
                         const isPlayer = playerPos.x === x && playerPos.y === y;

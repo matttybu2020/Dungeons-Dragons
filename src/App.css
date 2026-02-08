@@ -277,10 +277,12 @@
 .combat-screen {
   width: 100%;
   max-width: 1000px;
-  height: 700px;
+  min-height: 500px;
+  height: auto;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+
   background: radial-gradient(circle at center, rgba(168, 85, 247, 0.1), transparent);
   padding: 40px;
 }

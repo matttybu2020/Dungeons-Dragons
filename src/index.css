@@ -254,8 +254,7 @@ body::before {
 }
 
 
-/* Map Grid Styles */
-.game-grid {
+.dungeon-grid {
   display: grid;
   grid-template-columns: repeat(10, 1fr);
   gap: 4px;
@@ -263,9 +262,10 @@ body::before {
   padding: 10px;
   border-radius: 12px;
   border: 2px solid var(--glass-border);
+  aspect-ratio: 1;
 }
 
-.grid-cell {
+.dungeon-cell {
   aspect-ratio: 1;
   border-radius: 4px;
   display: flex;
@@ -274,38 +274,31 @@ body::before {
   font-size: 1.2rem;
   cursor: pointer;
   transition: all 0.2s;
-  position: relative;
+  background: rgba(255, 255, 255, 0.03);
 }
 
-.grid-cell:hover {
+.dungeon-cell:hover {
   background: rgba(168, 85, 247, 0.1);
-  transform: scale(1.1);
+  transform: scale(1.05);
   z-index: 2;
 }
 
-.cell-wall {
+.dungeon-cell.wall {
   background: #1e293b;
   color: #475569;
 }
 
-.cell-path {
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.cell-player {
+.dungeon-cell.player {
   background: rgba(168, 85, 247, 0.2);
   box-shadow: 0 0 15px var(--primary);
   z-index: 3;
 }
 
-.cell-enemy {
-  background: rgba(239, 68, 68, 0.1);
+.dungeon-cell.fog {
+  opacity: 0.3;
+  filter: blur(4px);
 }
 
-.cell-dragon {
-  filter: drop-shadow(0 0 10px gold);
-  animation: float 3s infinite ease-in-out;
-}
 
 @keyframes float {
 
@@ -358,17 +351,18 @@ body::before {
   }
 
   /* Force stack order */
-  .center-panel {
-    order: -1;
+  .left-panel {
+    order: 1;
   }
 
-  .left-panel {
-    order: 0;
+  .center-panel {
+    order: 2;
   }
 
   .right-panel {
-    order: 1;
+    order: 3;
   }
+
 
   .premium-nav {
     flex-wrap: wrap;
@@ -417,7 +411,11 @@ body::before {
   .dungeon-grid {
     grid-template-columns: repeat(10, 1fr) !important;
     gap: 2px !important;
+    width: 100% !important;
+    max-width: 100dvw !important;
+    margin: 0 auto;
   }
+
 
   .dungeon-cell {
     font-size: 0.8rem;
