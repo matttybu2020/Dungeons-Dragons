@@ -465,3 +465,54 @@ body::before {
     font-size: 2.5rem !important;
   }
 }
+
+/* Quest Sidebar Styles */
+.quest-sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 2999;
+}
+
+.quest-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 380px;
+  background: var(--surface);
+  border-right: 1px solid var(--glass-border);
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 20px 0 50px rgba(0, 0, 0, 0.5);
+}
+
+.quest-sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.quest-sidebar .quest-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--glass-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.quest-sidebar .quest-card {
+  margin-bottom: 15px;
+}
+
+@media (max-width: 768px) {
+  .quest-sidebar {
+    width: 100%;
+    border-right: none;
+  }
+}

@@ -22,34 +22,65 @@ const QuestLog = ({ isOpen, onClose }) => {
 
     return (
         <AnimatePresence>
-            <motion.div
-                className="quest-overlay"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={onClose}
-            >
-                <motion.div
-                    className="quest-panel glass-card"
-                    initial={{ x: -200, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    exit={{ x: -200, opacity: 0 }}
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    <div className="quest-header">
-                        <h2 className="fantasy-title"><Scroll /> Diario de Misiones</h2>
-                        <button onClick={onClose} className="close-btn"><X /></button>
-                    </div>
+            {isOpen && (
+                <>
+                    <motion.div
+                        className="quest-sidebar-overlay"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={onClose}
+                    />
+                    <motion.div
+                        className="quest-sidebar glass-card"
+                        initial={{ x: -400 }}
+                        animate={{ x: 0 }}
+                        exit={{ x: -400 }}
+                        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                    >
+                        <div className="quest-header">
+                            <h2 className="fantasy-title"><Scroll /> Misiones</h2>
+                            <button onClick={onClose} className="close-btn"><X /></button>
+                        </div>
 
-                    <div className="quest-sections">
-                        <section className="quest-section">
-                            <h3 className="section-title"><Target size={18} /> Activas</h3>
-                            <div className="quest-list">
-                                {activeQuests.map(quest => {
-                                    const progress = getProgress(quest);
-                                    const percent = (progress / quest.goal.target) * 100;
-                                    return (
-                                        <div key={quest.id} className="quest-card active">
+                        <div className="quest-sidebar-content">
+                            <section className="quest-section">
+                                <h3 className="section-title"><Target size={18} /> Activas</h3>
+                                <div className="quest-list">
+                                    {activeQuests.map(quest => {
+                                        const progress = getProgress(quest);
+                                        const percent = (progress / quest.goal.target) * 100;
+                                        return (
+                                            <div key={quest.id} className="quest-card active">
+                                                <div className="quest-info">
+                                                    <span className="quest-icon">{quest.icon}</span>
+                                                    <div className="quest-text">
+                                                        <h4>{quest.title}</h4>
+                                                        <p>{quest.description}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="quest-progress">
+                                                    <div className="progress-text">{progress} / {quest.goal.target}</div>
+                                                    <div className="progress-bar-bg">
+                                                        <motion.div
+                                                            className="progress-bar-fill"
+                                                            initial={{ width: 0 }}
+                                                            animate={{ width: `${percent}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                    {activeQuests.length === 0 && <p className="empty-msg">No tienes misiones activas</p>}
+                                </div>
+                            </section>
+
+                            <section className="quest-section">
+                                <h3 className="section-title"><Trophy size={18} /> Disponibles</h3>
+                                <div className="quest-list">
+                                    {availableQuests.map(quest => (
+                                        <div key={quest.id} className="quest-card available">
                                             <div className="quest-info">
                                                 <span className="quest-icon">{quest.icon}</span>
                                                 <div className="quest-text">
@@ -57,50 +88,23 @@ const QuestLog = ({ isOpen, onClose }) => {
                                                     <p>{quest.description}</p>
                                                 </div>
                                             </div>
-                                            <div className="quest-progress">
-                                                <div className="progress-text">{progress} / {quest.goal.target}</div>
-                                                <div className="progress-bar-bg">
-                                                    <motion.div
-                                                        className="progress-bar-fill"
-                                                        initial={{ width: 0 }}
-                                                        animate={{ width: `${percent}%` }}
-                                                    />
-                                                </div>
-                                            </div>
+                                            <button
+                                                className="accept-quest-btn premium-button"
+                                                onClick={() => addQuest(quest)}
+                                            >
+                                                Aceptar
+                                            </button>
                                         </div>
-                                    );
-                                })}
-                                {activeQuests.length === 0 && <p className="empty-msg">No tienes misiones activas</p>}
-                            </div>
-                        </section>
-
-                        <section className="quest-section">
-                            <h3 className="section-title"><Trophy size={18} /> Disponibles</h3>
-                            <div className="quest-list">
-                                {availableQuests.map(quest => (
-                                    <div key={quest.id} className="quest-card available">
-                                        <div className="quest-info">
-                                            <span className="quest-icon">{quest.icon}</span>
-                                            <div className="quest-text">
-                                                <h4>{quest.title}</h4>
-                                                <p>{quest.description}</p>
-                                            </div>
-                                        </div>
-                                        <button
-                                            className="accept-quest-btn premium-button"
-                                            onClick={() => addQuest(quest)}
-                                        >
-                                            Aceptar
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
-                    </div>
-                </motion.div>
-            </motion.div>
+                                    ))}
+                                </div>
+                            </section>
+                        </div>
+                    </motion.div>
+                </>
+            )}
         </AnimatePresence>
     );
 };
+
 
 export default QuestLog;

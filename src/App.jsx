@@ -119,6 +119,7 @@ const App = () => {
   const [isShaking, setIsShaking] = useState(false);
   const [dungeon, setDungeon] = useState([]);
   const [battleIntro, setBattleIntro] = useState(false);
+  const [combatParticles, setCombatParticles] = useState([]);
 
   const { checkQuests } = useGameStore();
 
