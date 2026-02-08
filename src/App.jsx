@@ -28,10 +28,10 @@ import { ALL_ITEMS } from './data/items';
 
 // --- CONFIGURACIÓN Y MOCKS ---
 const CLASSES = [
-  { id: 'warrior', name: 'Guerrero', icon: <Swords />, color: '#ef4444', desc: 'Maestro de las armas y la defensa.' },
-  { id: 'mage', name: 'Mago', icon: <Flame />, color: '#3b82f6', desc: 'Manipulador de las artes arcanas.' },
-  { id: 'paladin', name: 'Paladín', icon: <Shield />, color: '#fbbf24', desc: 'Defensor sagrado bendecido por la luz.' },
-  { id: 'rogue', name: 'Pícaro', icon: <Zap />, color: '#10b981', desc: 'Experto en sigilo y ataques críticos.' }
+  { id: 'warrior', name: 'Guerrero', icon: <Swords />, avatar: '⚔️', color: '#ef4444', desc: 'Maestro de las armas y la defensa.' },
+  { id: 'mage', name: 'Mago', icon: <Flame />, avatar: '🧙‍♂️', color: '#3b82f6', desc: 'Manipulador de las artes arcanas.' },
+  { id: 'paladin', name: 'Paladín', icon: <Shield />, avatar: '🛡️', color: '#fbbf24', desc: 'Defensor sagrado bendecido por la luz.' },
+  { id: 'rogue', name: 'Pícaro', icon: <Zap />, avatar: '🥷', color: '#10b981', desc: 'Experto en sigilo y ataques críticos.' }
 ];
 
 // --- COMPONENTES ---
@@ -116,8 +116,9 @@ const App = () => {
   const [showQuests, setShowQuests] = useState(false);
   const [showSocial, setShowSocial] = useState(false);
   const [narrativeEvent, setNarrativeEvent] = useState(null);
-  const [combatParticles, setCombatParticles] = useState([]);
   const [isShaking, setIsShaking] = useState(false);
+  const [dungeon, setDungeon] = useState([]);
+  const [battleIntro, setBattleIntro] = useState(false);
 
   const { checkQuests } = useGameStore();
 
@@ -125,6 +126,21 @@ const App = () => {
     if (character.name) {
       setGameState('world');
       audioManager.playMusic('world');
+    }
+    // Initialize common grid
+    if (dungeon.length === 0) {
+      const size = 10;
+      const grid = Array(size).fill(null).map(() => Array(size).fill('path'));
+      for (let i = 0; i < 20; i++) {
+        const x = Math.floor(Math.random() * size);
+        const y = Math.floor(Math.random() * size);
+        if (grid[y][x] === 'path' && (x !== 0 || y !== 0)) grid[y][x] = 'wall';
+      }
+      // Place items/enemies in grid
+      grid[4][5] = 'enemy';
+      grid[2][2] = 'treasure';
+      grid[8][8] = 'dragon';
+      setDungeon(grid);
     }
   }, []);
 
@@ -223,25 +239,42 @@ const App = () => {
     incrementStat('playTime', 1);
     audioManager.playSFX('click');
 
-    // Rare random narrative event
+    // Remove cell "value" (consume it)
+    if (dungeon[y] && dungeon[y][x]) {
+      const cellValue = dungeon[y][x];
+      if (cellValue !== 'path' && cellValue !== 'player') {
+        const newDungeon = dungeon.map(row => [...row]);
+        newDungeon[y][x] = 'path';
+        setDungeon(newDungeon);
+      }
+    }
+
     if (Math.random() < 0.1) {
       generateNarrativeEvent(x, y);
     }
 
-    // Encounter
     const enemyFound = enemies.find(e => e.x === x && e.y === y);
-    if (enemyFound) {
-      setCombatEnemy({ ...enemyFound, maxHp: enemyFound.hp });
-      setGameState('combat');
+    if (enemyFound || cellValue === 'enemy') {
+      const enemy = enemyFound || { name: 'Orco Salvaje', hp: 40, maxHp: 40 };
+      setCombatEnemy({ ...enemy, maxHp: enemy.hp });
+      setBattleIntro(true);
+      setTimeout(() => {
+        setGameState('combat');
+        setBattleIntro(false);
+      }, 1500);
       audioManager.playMusic('combat');
-      addLog(`¡Has sido emboscado por un ${enemyFound.name}!`, 'danger');
+      addLog(`¡Has sido emboscado!`, 'danger');
       return;
     }
 
-    if (x === dragonPos.x && y === dragonPos.y) {
+    if ((x === dragonPos.x && y === dragonPos.y) || cellValue === 'dragon') {
       setCombatEnemy({ name: 'DRAGÓN DORADO', hp: 200, maxHp: 200, isDragon: true });
-      setGameState('combat');
-      addLog(`¡TE ENCUENTRAS ANTE EL DRAGÓN DORADO! Prepárate para la batalla final.`, 'warning');
+      setBattleIntro(true);
+      setTimeout(() => {
+        setGameState('combat');
+        setBattleIntro(false);
+      }, 1500);
+      addLog(`¡TE ENCUENTRAS ANTE EL DRAGÓN DORADO!`, 'warning');
     }
   };
 
@@ -343,7 +376,7 @@ const App = () => {
             <header className="premium-nav glass-card">
               <div className="nav-left">
                 <div className="user-stats">
-                  <div className="avatar">🧙‍♂️</div>
+                  <div className="avatar">{character.class?.avatar || '👤'}</div>
                   <div>
                     <h2 className="fantasy-title">{character.name}</h2>
                     <span className="lvl-badge">LVL {character.level} {character.class.name}</span>
@@ -408,6 +441,9 @@ const App = () => {
                   playerPos={playerPos}
                   onCellClick={handleMove}
                   theme={{ id: 'dungeon', name: 'Mazmorra de Sombras', color: '#1e293b' }}
+                  character={character}
+                  dungeon={dungeon}
+                  setDungeon={setDungeon}
                 />
               </aside>
 
@@ -444,6 +480,33 @@ const App = () => {
             <ItemShop isOpen={showShop} onClose={() => setShowShop(false)} />
             <CraftingPanel isOpen={showCrafting} onClose={() => setShowCrafting(false)} />
             <QuestLog isOpen={showQuests} onClose={() => setShowQuests(false)} />
+
+            {/* Battle Intro Overlay */}
+            <AnimatePresence>
+              {battleIntro && (
+                <motion.div
+                  className="battle-intro-overlay"
+                  initial={{ opacity: 0, scale: 2 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.5 }}
+                >
+                  <div className="battle-intro-content">
+                    <motion.h1
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ repeat: Infinity, duration: 1 }}
+                      className="fantasy-title battle-text"
+                    >
+                      ⚔️ ¡BAtALLA! ⚔️
+                    </motion.h1>
+                    <div className="vs-icons">
+                      <span className="player-vs">{character.class?.avatar}</span>
+                      <span className="vs-text">VS</span>
+                      <span className="enemy-vs">👹</span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Social / Multiplayer Sidebar Mock */}
             <AnimatePresence>
@@ -490,7 +553,7 @@ const App = () => {
                     transition={{ duration: 0.2 }}
                     className="sprite"
                   >
-                    🧙‍♂️
+                    {character.class?.avatar || '👤'}
                   </motion.div>
                   <div className="name-plate glow-text">{character.name}</div>
                 </div>

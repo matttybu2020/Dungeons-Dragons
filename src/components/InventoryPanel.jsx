@@ -49,7 +49,7 @@ const InventoryPanel = ({ isOpen, onClose }) => {
                                 animate={{ y: [0, -10, 0] }}
                                 transition={{ repeat: Infinity, duration: 3 }}
                             >
-                                🧙‍♂️
+                                {character.class?.avatar || '👤'}
                                 <div className="aura-glow"></div>
                             </motion.div>
 
@@ -108,7 +108,7 @@ const InventoryPanel = ({ isOpen, onClose }) => {
 };
 
 const EquipmentSlot = ({ label, item, onUnequip, icon }) => {
-    const rarity = item ? ITEM_RARITIES[item.rarity] : null;
+    const rarity = item ? (ITEM_RARITIES[item.rarity] || ITEM_RARITIES.common) : null;
 
     return (
         <div className={`equipment-slot ${item ? 'filled' : 'empty'}`} style={item ? { '--rarity-color': rarity.color } : {}}>
@@ -132,7 +132,7 @@ const EquipmentSlot = ({ label, item, onUnequip, icon }) => {
 };
 
 const InventoryItem = ({ item, onClick }) => {
-    const rarity = ITEM_RARITIES[item.rarity];
+    const rarity = ITEM_RARITIES[item.rarity] || ITEM_RARITIES.common;
 
     return (
         <motion.div

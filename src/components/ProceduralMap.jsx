@@ -42,15 +42,32 @@ const generateDungeon = (size = 10, theme) => {
     return grid;
 };
 
-const ProceduralMap = ({ onCellClick, playerPos, theme }) => {
-    const [dungeon, setDungeon] = useState([]);
+const ProceduralMap = ({ onCellClick, playerPos, theme, character, dungeon: dungeonExternal, setDungeon: setDungeonExternal }) => {
+    const [dungeonInternal, setDungeonInternal] = useState([]);
     const [discovered, setDiscovered] = useState(new Set());
     const [weather, setWeather] = useState([]);
+    const [movingBlock, setMovingBlock] = useState({ x: 5, y: 5 });
+
+    const currentDungeon = dungeonExternal || dungeonInternal;
+    const setCurrentDungeon = setDungeonExternal || setDungeonInternal;
 
     useEffect(() => {
-        const newDungeon = generateDungeon(10, theme);
-        setDungeon(newDungeon);
+        if (!dungeonExternal || dungeonExternal.length === 0) {
+            const newDungeon = generateDungeon(10, theme);
+            setDungeonInternal(newDungeon);
+        }
         setDiscovered(new Set(['0-0']));
+
+        // Moving block logic
+        const moveInterval = setInterval(() => {
+            setMovingBlock(prev => {
+                const dx = Math.floor(Math.random() * 3) - 1;
+                const dy = Math.floor(Math.random() * 3) - 1;
+                const newX = Math.max(0, Math.min(9, prev.x + dx));
+                const newY = Math.max(0, Math.min(9, prev.y + dy));
+                return { x: newX, y: newY };
+            });
+        }, 3000);
 
         // Generate ambient particles
         const particles = Array(20).fill(0).map(() => ({
@@ -61,7 +78,8 @@ const ProceduralMap = ({ onCellClick, playerPos, theme }) => {
             duration: 3 + Math.random() * 5
         }));
         setWeather(particles);
-    }, [theme]);
+        return () => clearInterval(moveInterval);
+    }, [theme, dungeonExternal]);
 
     useEffect(() => {
         // Fog of war - reveal cells around player
@@ -90,7 +108,6 @@ const ProceduralMap = ({ onCellClick, playerPos, theme }) => {
 
     return (
         <div className="procedural-map glass-card" style={{ position: 'relative', overflow: 'hidden' }}>
-            {/* Ambient Particles */}
             <div className="weather-layer">
                 {weather.map(p => (
                     <motion.div
@@ -120,35 +137,40 @@ const ProceduralMap = ({ onCellClick, playerPos, theme }) => {
                 <span className="fantasy-title">{theme.name}</span>
                 <button
                     className="regenerate-btn"
-                    onClick={() => setDungeon(generateDungeon(10, theme))}
+                    onClick={() => setCurrentDungeon(generateDungeon(10, theme))}
                 >
                     🔄 Nueva Mazmorra
                 </button>
             </div>
             <div className="dungeon-grid" style={{ '--theme-color': theme.color, position: 'relative', zIndex: 2 }}>
-                {dungeon.map((row, y) =>
+                {currentDungeon.map((row, y) =>
                     row.map((cell, x) => {
                         const isPlayer = playerPos.x === x && playerPos.y === y;
                         const isDiscovered = discovered.has(`${x}-${y}`);
+                        const isMovingBlock = movingBlock.x === x && movingBlock.y === y;
 
                         return (
                             <motion.div
                                 key={`${x}-${y}`}
-                                className={`dungeon-cell ${cell} ${isPlayer ? 'player' : ''} ${!isDiscovered ? 'fog' : ''}`}
+                                className={`dungeon-cell ${cell} ${isPlayer ? 'player' : ''} ${!isDiscovered ? 'fog' : ''} ${isMovingBlock ? 'moving-block' : ''}`}
                                 onClick={() => onCellClick(x, y)}
                                 whileHover={{ scale: isDiscovered ? 1.1 : 1 }}
                                 initial={{ opacity: 0 }}
-                                animate={{ opacity: isDiscovered ? 1 : 0.3 }}
+                                animate={{
+                                    opacity: isDiscovered ? 1 : 0.3,
+                                    boxShadow: isMovingBlock ? '0 0 15px #3b82f6' : 'none'
+                                }}
                                 transition={{ duration: 0.5 }}
                             >
                                 {isPlayer ? (
                                     <motion.span
-                                        animate={{ scale: [1, 1.2, 1] }}
+                                        animate={{ scale: [1, 1.2, 1], rotate: [0, 5, -5, 0] }}
                                         transition={{ repeat: Infinity, duration: 2 }}
+                                        style={{ fontSize: '1.5rem', display: 'block' }}
                                     >
-                                        🧙‍♂️
+                                        {character?.class?.avatar || '👤'}
                                     </motion.span>
-                                ) : isDiscovered ? getCellEmoji(cell) : '🌫️'}
+                                ) : isDiscovered ? (isMovingBlock ? '💎' : getCellEmoji(cell)) : '🌫️'}
                             </motion.div>
                         );
                     })

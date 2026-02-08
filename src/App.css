@@ -229,31 +229,11 @@
   min-height: 0;
 }
 
-@media (max-width: 1200px) {
-  .game-content {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .right-panel {
-    grid-column: span 2;
-  }
+.game-layout {
+  height: auto;
 }
 
-@media (max-width: 768px) {
-  .game-content {
-    grid-template-columns: 1fr;
-  }
 
-  .left-panel,
-  .center-panel,
-  .right-panel {
-    grid-column: span 1;
-  }
-
-  .game-layout {
-    height: auto;
-  }
-}
 
 .log-panel {
   display: flex;

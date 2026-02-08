@@ -19,6 +19,90 @@
   --dragon-gold: radial-gradient(circle, #fbbf24 0%, #92400e 100%);
 }
 
+.close-btn {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: white !important;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 100;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.close-btn:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+  transform: rotate(90deg) scale(1.1);
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+}
+
+.close-btn svg {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.battle-screen-intro {
+  position: fixed;
+  inset: 0;
+  background: white;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.battle-intro-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(20px);
+}
+
+.battle-intro-content {
+  text-align: center;
+}
+
+.battle-text {
+  font-size: 6rem !important;
+  margin-bottom: 40px;
+  background: var(--mythic);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 30px var(--primary-glow));
+}
+
+.vs-icons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 50px;
+}
+
+.player-vs,
+.enemy-vs {
+  font-size: 8rem;
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3));
+}
+
+.vs-text {
+  font-size: 3rem;
+  font-family: 'Cinzel Decorative', serif;
+  color: #ef4444;
+  font-weight: 900;
+  text-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+}
+
+
+
 
 body {
   margin: 0;
@@ -253,98 +337,133 @@ body::before {
   background: var(--primary);
 }
 
-/* Full Responsive Overhaul */
+/* Mobile-First / Comprehensive Responsive Overhaul */
 @media (max-width: 1024px) {
+  .app-container {
+    padding: 0;
+    align-items: flex-start;
+  }
+
+  .game-layout {
+    max-width: 100%;
+    min-height: 100vh;
+    gap: 10px;
+    border-radius: 0;
+  }
+
   .game-content {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+    gap: 15px;
     padding: 10px;
   }
 
-  .left-panel,
-  .right-panel,
+  /* Force stack order */
   .center-panel {
-    width: 100%;
-    order: 2;
+    order: -1;
   }
 
-  .center-panel {
+  .left-panel {
+    order: 0;
+  }
+
+  .right-panel {
     order: 1;
   }
 
-  .social-sidebar {
-    width: 100%;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    border-radius: 0;
-    height: 100vh;
-  }
-
-  .quest-panel,
-  .inventory-panel {
-    width: 100% !important;
-    border-radius: 0 !important;
-  }
-}
-
-@media (max-width: 768px) {
   .premium-nav {
-    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 10px;
     height: auto;
-    padding: 15px;
-    gap: 15px;
+    gap: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    border-radius: 0;
   }
+
 
   .nav-left,
   .nav-center,
   .nav-right {
     width: 100%;
     justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  .user-stats {
-    flex-direction: column;
     text-align: center;
   }
 
   .resource-bars {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .bar-group {
-    flex: 1;
-    max-width: 120px;
-  }
-
-  .gold-box,
-  .xp-box {
-    font-size: 0.8rem;
-  }
-
-  .game-layout {
-    height: auto;
-    overflow-y: visible;
-  }
-
-  .combat-stage {
-    flex-direction: column;
-    gap: 40px;
-  }
-
-  .combat-screen {
-    height: auto;
-    min-height: 100vh;
-    padding: 20px;
-  }
-
-  .dragon-sprite {
-    font-size: 6rem;
+    margin-top: 10px;
   }
 }
 
-/* Animations for closing */
-.close-action {
-  cursor: pointer;
+@media (max-width: 768px) {
+  .fantasy-title {
+    font-size: 1.2rem;
+  }
+
+  .battle-text {
+    font-size: 3rem !important;
+  }
+
+  .player-vs,
+  .enemy-vs {
+    font-size: 4rem;
+  }
+
+  .vs-icons {
+    gap: 20px;
+  }
+
+  .dungeon-grid {
+    grid-template-columns: repeat(10, 1fr) !important;
+    gap: 2px !important;
+  }
+
+  .dungeon-cell {
+    font-size: 0.8rem;
+  }
+
+  .nav-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  /* Modals better behavior */
+  .inventory-panel,
+  .quest-panel,
+  .shop-panel,
+  .crafting-panel,
+  .achievement-panel,
+  .skill-tree-panel {
+    border-radius: 0 !important;
+    padding: 15px !important;
+  }
+
+  .creation-screen {
+    padding: 20px;
+    border-radius: 0;
+  }
+
+  .class-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .log-panel {
+    max-height: 250px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .class-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vs-text {
+    font-size: 1.5rem;
+  }
+
+  .battle-text {
+    font-size: 2.5rem !important;
+  }
 }
